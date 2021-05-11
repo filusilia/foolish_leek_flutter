@@ -75,4 +75,10 @@ class DioUtil {
     return ResultResponse.fromJson(response.data);
   }
 
+  ///实时获取基金
+  Future<ResultResponse> getRealTime(String code) async {
+    var response = await _dio.post('fund/realTimeFundByCode',data: {'fundCode': code});
+    return ResultResponse.fromJson(response.data);
+  }
+
 }

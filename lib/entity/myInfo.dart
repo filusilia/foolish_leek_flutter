@@ -75,7 +75,7 @@ class MyInfo {
         '"userCode": $userCode, '
         '"nickname": ${nickname != null ? '${json.encode(nickname)}' : 'null'}, '
         '"sex": ${sex != null ? '${json.encode(sex)}' : 'null'}, '
-        '"username": ${username != null ? '${json.encode(username)}' : 'null'}},'
+        '"username": ${username != null ? '${json.encode(username)}' : 'null'},'
         '"password": ${password != null ? '${json.encode(password)}' : 'null'}}';
   }
 

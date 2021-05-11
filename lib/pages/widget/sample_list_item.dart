@@ -1,4 +1,9 @@
+import 'package:flustars/flustars.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:no_foolish/common/router/routes.dart';
+import 'package:no_foolish/entity/fund.dart';
+import 'package:no_foolish/util/dio_util.dart';
 
 /// 简单列表项
 class SampleListItem extends StatelessWidget {
@@ -8,16 +13,45 @@ class SampleListItem extends StatelessWidget {
   /// 宽度
   final double width;
 
-  const SampleListItem({
+  late int _index;
+  late Fund _fund;
+
+  SampleListItem(
+    int index,
+    Fund fund, {
     Key? key,
     this.direction = Axis.vertical,
     this.width = double.infinity,
-  }) : super(key: key);
+  }) : super(key: key) {
+    this._index = index;
+    this._fund = fund;
+  }
+
+  _getRealTime(String fundCode) async {
+    int code;
+    await DioUtil.getInstance().getRealTime(fundCode).then((value) {
+      code = int.parse(value.code!);
+      if (code == 0) {
+        var nowFund = JsonUtil.getObject(value.data, (v) => Fund.fromJson(v));
+        LogUtil.v(nowFund, tag: 'realTime');
+      }else {
+        if (code < 2000) {
+          Get.snackbar("Failed", value.message!);
+        }
+        if (code == 2005) {
+          Get.snackbar("Failed", '登录过期了,请重新登录');
+          Get.toNamed(Routes.Login);
+        }
+      }
+      setState() {}
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return direction == Axis.vertical
         ? Card(
+            child: InkWell(
             child: Container(
               child: Row(
                 children: <Widget>[
@@ -26,7 +60,7 @@ class SampleListItem extends StatelessWidget {
                     child: AspectRatio(
                       aspectRatio: 1.0,
                       child: Container(
-                        color: Colors.grey[200],
+                        color: Colors.greenAccent,
                       ),
                     ),
                   ),
@@ -45,15 +79,9 @@ class SampleListItem extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
                                     Container(
-                                      width: 120.0,
-                                      height: 15.0,
+                                      height: 25.0,
                                       color: Colors.grey[200],
-                                    ),
-                                    Container(
-                                      width: 60.0,
-                                      height: 10.0,
-                                      margin: EdgeInsets.only(top: 8.0),
-                                      color: Colors.grey[200],
+                                      child: Text(_fund.fundCode!),
                                     ),
                                   ],
                                 ),
@@ -63,7 +91,7 @@ class SampleListItem extends StatelessWidget {
                                 ),
                                 Icon(
                                   Icons.star,
-                                  color: Colors.grey[200],
+                                  color: Colors.yellow,
                                 )
                               ],
                             ),
@@ -81,16 +109,9 @@ class SampleListItem extends StatelessWidget {
                                   height: 4.0,
                                 ),
                                 Container(
-                                  height: 10.0,
+                                  height: 20.0,
                                   color: Colors.grey[200],
-                                ),
-                                SizedBox(
-                                  height: 4.0,
-                                ),
-                                Container(
-                                  height: 10.0,
-                                  width: 150.0,
-                                  color: Colors.grey[200],
+                                  child: Text(_fund.fundName!),
                                 ),
                               ],
                             ),
@@ -100,8 +121,12 @@ class SampleListItem extends StatelessWidget {
                 ],
               ),
             ),
-          )
+            onTap: () {
+              _getRealTime(_fund.fundCode!);
+            },
+          ))
         : Card(
+            child: InkWell(
             child: Container(
               alignment: Alignment.center,
               child: Column(
@@ -177,6 +202,9 @@ class SampleListItem extends StatelessWidget {
                 ],
               ),
             ),
-          );
+            onTap: () {
+              _getRealTime(_fund.fundCode!);
+            },
+          ));
   }
 }

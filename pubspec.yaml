@@ -35,6 +35,7 @@ dependencies:
   cupertino_icons: ^1.0.3
   flutter_easyrefresh: ^2.2.1
   flare_flutter: ^3.0.0
+  url_launcher: ^6.0.3
 
 dev_dependencies:
   flutter_test:
@@ -86,6 +87,7 @@ flutter:
   # see https://flutter.dev/custom-fonts/#from-packages
   assets:
     - assets/icon/
+    - assets/images/
     - assets/flare/
 flutter_icons:
   android: "launcher_icon"
