@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:no_foolish/common/global.dart';
+import 'package:no_foolish/pages/fund/fund_detail.dart';
 import 'package:no_foolish/pages/login.dart';
 import 'package:no_foolish/pages/index.dart';
 
@@ -9,6 +10,7 @@ import 'common/common.dart';
 
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   Global.init().then((value) => runApp(MyApp()));
 }
 
@@ -32,6 +34,10 @@ class MyApp extends StatelessWidget {
         GetPage(
           name: '/profile/',
           page: () => Login(),
+        ),
+        GetPage(
+          name: '/fund/detail',
+          page: () => FundDetail(),
         ),
         GetPage(
           name: '/index',

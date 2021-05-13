@@ -39,17 +39,17 @@ class Global {
       final token = JsonUtil.getObject(tokenObj, (v) => MyToken.fromJson(v));
       if (null != token) {
         var before = DateTime.fromMicrosecondsSinceEpoch(token.now!);
-        if (DateTime.now().difference(before).inMilliseconds <
+        if (DateTime.now().difference(before).inSeconds <
             token.tokenTimeout!) {
           DioUtil.getInstance().setToken(token);
           LogUtil.v('没问题奥 已经登录了，直接进入列表吧.', tag: BaseConstant.tagInit);
           LogUtil.v('完事了.', tag: BaseConstant.tagConfig);
+          DioUtil.getInstance().refresh();
           BaseConstant.isLogin = true;
         }else {
-          DioUtil.getInstance().refresh();
+          LogUtil.v('超时了,token留着也没用了,直接删除.', tag: BaseConstant.tagInit);
+          SpUtil.remove('token');
         }
-        LogUtil.v('超时了,token留着也没用了,直接删除.', tag: BaseConstant.tagInit);
-        SpUtil.remove('token');
       }
     }
   }

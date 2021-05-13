@@ -36,6 +36,8 @@ class IndexField extends StatefulWidget {
 }
 
 class IndexFieldState extends State<IndexField> {
+  late EasyRefreshController _controller;
+
   //当前数量
   int _count = 0;
 
@@ -46,12 +48,14 @@ class IndexFieldState extends State<IndexField> {
   int _page = 1;
 
   //每页数量
-  int _pageSize = 20;
+  int _pageSize = 10;
   List<Fund>? _list;
 
   @override
   void initState() {
     super.initState();
+    _controller = EasyRefreshController();
+    _controller.callLoad();
   }
 
   @override
@@ -66,6 +70,35 @@ class IndexFieldState extends State<IndexField> {
     ));
   }
 
+  _initFunds() async {
+    int code;
+    await DioUtil.getInstance().getFunds(1, pageSize: _pageSize).then((value) {
+      code = int.parse(value.code!);
+      if (code == 0) {
+        Map<String, dynamic> data = value.data;
+        _total = data['total'];
+        var _data = data['data'];
+        Get.snackbar("", '加载成功');
+        if (_data != null) {
+          _list = JsonUtil.getObjectList(_data, (v) => Fund.fromJson(v));
+        }
+        if (mounted && null != _list && _list!.length > 0) {
+          setState(() {
+            _count = _list!.length;
+          });
+        }
+      } else {
+        if (code < 2000) {
+          Get.snackbar("Failed", value.message!);
+        }
+        if (code == 2005) {
+          Get.snackbar("Failed", '登录过期了,请重新登录');
+          Get.toNamed(Routes.Login);
+        }
+      }
+    });
+  }
+
   _loadFunds(int page) async {
     int code;
     await DioUtil.getInstance()
@@ -76,18 +109,26 @@ class IndexFieldState extends State<IndexField> {
         Map<String, dynamic> data = value.data;
         _total = data['total'];
         var _data = data['data'];
-        if(_data!=null) {
-          _list = JsonUtil.getObjectList(_data, (v) => Fund.fromJson(v));
-        }else{
-          _page = page-1;
-        }
-        if (mounted && null != _list) {
-          _count += _list!.length;
+        if (mounted && null != _list && _list!.length > 0) {
+          if (_data != null) {
+            var tempList =
+                JsonUtil.getObjectList(_data, (v) => Fund.fromJson(v));
+            if (null != tempList && tempList.length > 0) {
+              _list!.addAll(tempList.reversed);
+            } else {
+              _page = page - 1;
+              Get.snackbar("", '没有更多数据啦');
+            }
+          }
+          Get.snackbar("", '加载成功');
           setState(() {
-            LogUtil.v(value, tag: 'funds');
+            _count = _list!.length;
           });
+        } else {
+          _page = page - 1;
+          Get.snackbar("", '没有更多数据啦');
         }
-      }else {
+      } else {
         if (code < 2000) {
           Get.snackbar("Failed", value.message!);
         }
@@ -102,18 +143,14 @@ class IndexFieldState extends State<IndexField> {
   @override
   Widget build(BuildContext context) {
     return EasyRefresh.custom(
+      controller: _controller,
       header: SpaceHeader(),
       footer: BallPulseFooter(),
       onRefresh: () async {
         LogUtil.v('ok onRefresh');
         _page = 1;
         _count = 0;
-        await _loadFunds(_page);
-        // await Future.delayed(Duration(seconds: 2), () {
-        //   if (mounted) {
-        //     setState(() {});
-        //   }
-        // });
+        await _initFunds();
       },
       onLoad: () async {
         LogUtil.v('ok onLoad');
@@ -124,7 +161,7 @@ class IndexFieldState extends State<IndexField> {
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
-              return SampleListItem(index,_list![index]);
+              return SampleListItem(index, _list![index]);
             },
             childCount: _count,
           ),

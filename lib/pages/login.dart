@@ -118,7 +118,7 @@ class LoginFormFieldState extends State<LoginFormField> {
             _saveToken(tokenInfo);
             var myInfo = MyInfo.fromJson(data['myInfo']);
             _savePersonPref(myInfo);
-            showInSnackBar('${myInfo.nickname}正在登录...');
+            showInSnackBar('${myInfo.nickname}，欢迎您。');
             Get.toNamed(Routes.Index);
           }
         }
@@ -239,7 +239,7 @@ class LoginFormFieldState extends State<LoginFormField> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                child: Text('提交'),
+                child: Text('登录'),
                 onPressed: _handleSubmitted,
               ),
             )),

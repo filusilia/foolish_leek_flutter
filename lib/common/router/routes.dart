@@ -9,4 +9,6 @@ class Routes {
 
   static const String SearchResult = '/fund/search';
 
+  static const String FundDetail = '/fund/detail';
+
 }

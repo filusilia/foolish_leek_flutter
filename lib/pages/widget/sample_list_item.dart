@@ -1,12 +1,16 @@
 import 'package:flustars/flustars.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:no_foolish/common/router/routes.dart';
+import 'package:no_foolish/controller/fund_controller.dart';
 import 'package:no_foolish/entity/fund.dart';
 import 'package:no_foolish/util/dio_util.dart';
 
 /// 简单列表项
 class SampleListItem extends StatelessWidget {
+  final FundController c = Get.put(FundController());
+
   /// 方向
   final Axis direction;
 
@@ -33,8 +37,10 @@ class SampleListItem extends StatelessWidget {
       code = int.parse(value.code!);
       if (code == 0) {
         var nowFund = JsonUtil.getObject(value.data, (v) => Fund.fromJson(v));
+
         LogUtil.v(nowFund, tag: 'realTime');
-      }else {
+        Get.toNamed(Routes.FundDetail, arguments: nowFund);
+      } else {
         if (code < 2000) {
           Get.snackbar("Failed", value.message!);
         }
@@ -43,8 +49,15 @@ class SampleListItem extends StatelessWidget {
           Get.toNamed(Routes.Login);
         }
       }
-      setState() {}
     });
+  }
+
+  bool _upOrDown() {
+    var dayGrowth = _fund.dayGrowth ?? '0';
+    if (double.parse(dayGrowth) > 0) {
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -56,13 +69,39 @@ class SampleListItem extends StatelessWidget {
               child: Row(
                 children: <Widget>[
                   Container(
-                    height: 100.0,
+                    height: 40.0,
                     child: AspectRatio(
-                      aspectRatio: 1.0,
-                      child: Container(
-                        color: Colors.greenAccent,
-                      ),
-                    ),
+                        aspectRatio: 2.0,
+                        //左侧显示今日涨还是跌
+                        child: _upOrDown()
+                            ? Row(
+                                children: <Widget>[
+                                  Icon(
+                                    CupertinoIcons.chevron_up,
+                                    color: Colors.red[600],
+                                  ),
+                                  Container(
+                                    color: Colors.red[400],
+                                    child: Text(_fund.dayGrowth ?? '0',
+                                        style: TextStyle(
+                                            fontSize: 14, color: Colors.white)),
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                children: <Widget>[
+                                  Icon(
+                                    CupertinoIcons.chevron_down,
+                                    color: Colors.green[600],
+                                  ),
+                                  Container(
+                                    color: Colors.green[400],
+                                    child: Text(_fund.dayGrowth ?? '0',
+                                        style: TextStyle(
+                                            fontSize: 14, color: Colors.white)),
+                                  ),
+                                ],
+                              )),
                   ),
                   Expanded(
                     flex: 1,
@@ -80,8 +119,7 @@ class SampleListItem extends StatelessWidget {
                                   children: <Widget>[
                                     Container(
                                       height: 25.0,
-                                      color: Colors.grey[200],
-                                      child: Text(_fund.fundCode!),
+                                      child: Text(_fund.fundName!),
                                     ),
                                   ],
                                 ),
@@ -91,27 +129,38 @@ class SampleListItem extends StatelessWidget {
                                 ),
                                 Icon(
                                   Icons.star,
-                                  color: Colors.yellow,
+                                  color: _fund.favorite == '1'
+                                      ? Colors.yellow
+                                      : Colors.grey,
                                 )
                               ],
                             ),
                             SizedBox(
                               height: 8.0,
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            Row(
                               children: <Widget>[
-                                Container(
-                                  height: 10.0,
-                                  color: Colors.grey[200],
+                                Expanded(
+                                  flex: 2,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Container(
+                                        height: 20.0,
+                                        child: Text(_fund.fundCode!),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                SizedBox(
-                                  height: 4.0,
+                                Expanded(
+                                  flex: 1,
+                                  child: SizedBox(),
                                 ),
                                 Container(
                                   height: 20.0,
-                                  color: Colors.grey[200],
-                                  child: Text(_fund.fundName!),
+                                  child:
+                                      Text((_fund.netWorth ?? '').toString()),
                                 ),
                               ],
                             ),
