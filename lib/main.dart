@@ -5,6 +5,7 @@ import 'package:no_foolish/common/global.dart';
 import 'package:no_foolish/pages/fund/fund_detail.dart';
 import 'package:no_foolish/pages/login.dart';
 import 'package:no_foolish/pages/index.dart';
+import 'package:no_foolish/pages/my/register.dart';
 
 import 'common/common.dart';
 
@@ -30,6 +31,10 @@ class MyApp extends StatelessWidget {
         GetPage(
           name: '/',
           page: () => Login(),
+        ),
+        GetPage(
+          name: '/',
+          page: () => Register(),
         ),
         GetPage(
           name: '/profile/',

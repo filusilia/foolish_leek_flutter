@@ -10,7 +10,7 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
-	<key>CFBundleName</key>
+	<key>聪明的小韭菜</key>
 	<string>no_foolish</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
