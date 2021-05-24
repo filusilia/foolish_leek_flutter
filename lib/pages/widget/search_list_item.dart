@@ -7,8 +7,8 @@ import 'package:no_foolish/controller/fund_controller.dart';
 import 'package:no_foolish/entity/fund.dart';
 import 'package:no_foolish/util/dio_util.dart';
 
-/// 简单列表项
-class SampleListItem extends StatelessWidget {
+/// 搜索结果列表
+class SearchListItem extends StatelessWidget {
   final FundController c = Get.put(FundController());
 
   /// 方向
@@ -20,7 +20,7 @@ class SampleListItem extends StatelessWidget {
   late int _index;
   late Fund _fund;
 
-  SampleListItem(
+  SearchListItem(
     int index,
     Fund fund, {
     Key? key,

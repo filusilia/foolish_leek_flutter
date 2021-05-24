@@ -57,28 +57,52 @@ class DioUtil {
     return ResultResponse.fromJson(response.data);
   }
 
-  /// 登录
+  /// 更新登录
   Future<ResultResponse> refresh() async {
     var response = await _dio.get('user/updateLogin');
     return ResultResponse.fromJson(response.data);
   }
 
-  /// 登录
+  /// 判断是否登录
   Future<ResultResponse> isLogin() async {
     var response = await _dio.get('user/isLogin');
     return ResultResponse.fromJson(response.data);
   }
 
-  /// 获取基金
+  /// 分页获取基金
   Future<ResultResponse> getFunds(int page, {int? pageSize = 10}) async {
-    var response = await _dio.post('fund/listFund',data: {'page': page, 'pageSize': pageSize});
+    var response = await _dio
+        .post('fund/listFund', data: {'page': page, 'pageSize': pageSize});
     return ResultResponse.fromJson(response.data);
   }
 
   ///实时获取基金
   Future<ResultResponse> getRealTime(String code) async {
-    var response = await _dio.post('fund/realTimeFundByCode',data: {'fundCode': code});
+    var response =
+        await _dio.post('fund/realTimeFundByCode', data: {'fundCode': code});
     return ResultResponse.fromJson(response.data);
   }
 
+  ///查询基金
+  Future<ResultResponse> searchFund(
+      String? code, String? pinyin, String? name, int page,
+      {int? pageSize = 20}) async {
+    var response = await _dio.post('fund/searchFund',
+        data: {'fundCode': code, 'pinyin': pinyin, 'fundName': name});
+    return ResultResponse.fromJson(response.data);
+  }
+
+  ///添加我的基金
+  Future<ResultResponse> addFund(String code) async {
+    var response = await _dio.post('fund/addMyFund', data: {'fundCode': code});
+    return ResultResponse.fromJson(response.data);
+  }
+
+  ///收藏/取消收藏基金
+  ///favorite:1-收藏,0-取消
+  Future<ResultResponse> favoriteFund(String code, String favorite) async {
+    var response = await _dio.post('fund/favoriteFund',
+        data: {'fundCode': code, 'favorite': favorite});
+    return ResultResponse.fromJson(response.data);
+  }
 }

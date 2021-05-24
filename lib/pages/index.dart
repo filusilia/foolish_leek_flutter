@@ -1,41 +1,28 @@
 import 'package:flustars/flustars.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:flutter_search_bar/flutter_search_bar.dart';
 import 'package:get/get.dart';
 import 'package:no_foolish/common/common.dart';
 import 'package:no_foolish/common/router/routes.dart';
 import 'package:no_foolish/entity/fund.dart';
 import 'package:no_foolish/pages/widget/sample_list_item.dart';
+import 'package:no_foolish/util/custom_tool.dart';
 import 'package:no_foolish/util/dio_util.dart';
 
 import 'header/space_header.dart';
 
 ///主页
-class Index extends StatelessWidget {
-  const Index();
-
-  @override
-  Widget build(BuildContext context) {
-    LogUtil.e("sp is init ${SpUtil.isInitialized()}");
-    // on the framework.
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(BaseConstant.project),
-      ),
-      body: const IndexField(),
-    );
-  }
-}
-
-class IndexField extends StatefulWidget {
-  const IndexField({Key? key}) : super(key: key);
+class Index extends StatefulWidget {
+  const Index({Key? key}) : super(key: key);
 
   @override
   IndexFieldState createState() => IndexFieldState();
 }
 
-class IndexFieldState extends State<IndexField> {
+class IndexFieldState extends State<Index> {
+  late SearchBar searchBar;
   late EasyRefreshController _controller;
 
   //当前数量
@@ -50,6 +37,21 @@ class IndexFieldState extends State<IndexField> {
   //每页数量
   int _pageSize = 10;
   List<Fund>? _list;
+
+  IndexFieldState() {
+    searchBar = new SearchBar(
+        inBar: false,
+        buildDefaultAppBar: buildAppBar,
+        setState: setState,
+        onSubmitted: onSubmitted,
+        hintText: '请输入想查询的基金',
+        onCleared: () {
+          print("Search bar has been cleared");
+        },
+        onClosed: () {
+          print("Search bar has been closed");
+        });
+  }
 
   @override
   void initState() {
@@ -70,6 +72,55 @@ class IndexFieldState extends State<IndexField> {
     ));
   }
 
+  AppBar buildAppBar(BuildContext context) {
+    return AppBar(title: Text(BaseConstant.project), actions: [
+      IconButton(
+          icon: Icon(CupertinoIcons.search, semanticLabel: "搜索"),
+          onPressed: () {
+            searchBar.beginSearch(context);
+          })
+    ]);
+  }
+
+  void onSubmitted(String value) {
+    LogUtil.v('submit $value');
+    _getFund(value);
+  }
+
+  //搜索基金
+  _getFund(String value) {
+    List<String> search = value.split(' ');
+    Fund? fund = Fund.fromParams();
+    for (var temp in search) {
+      if (CustomTool.isNumeric(temp)) {
+        fund.fundCode = temp;
+      } else if (temp.isAlphabetOnly) {
+        fund.fundFullPinyin = temp;
+      } else {
+        fund.fundName = temp;
+      }
+    }
+    int code;
+    DioUtil.getInstance()
+        .searchFund(fund.fundCode, fund.fundFullPinyin, fund.fundName, 1)
+        .then((value) {
+      code = int.parse(value.code!);
+      if (code == 0) {
+        Map<String, dynamic> data = value.data;
+        var _data = data['data'];
+        LogUtil.v(_data);
+        if (_data.isNotEmpty) {
+          var result = JsonUtil.getObjectList(data, (v) => Fund.fromJson(v));
+          LogUtil.v(result);
+          Get.toNamed(Routes.SearchResult, arguments: data);
+        } else {
+          Get.snackbar("", '没有找到您想要查询的基金');
+        }
+      }
+    });
+  }
+
+  //初始化基金列表
   _initFunds() async {
     int code;
     await DioUtil.getInstance().getFunds(1, pageSize: _pageSize).then((value) {
@@ -99,6 +150,7 @@ class IndexFieldState extends State<IndexField> {
     });
   }
 
+  //加载指定页码的基金列表
   _loadFunds(int page) async {
     int code;
     await DioUtil.getInstance()
@@ -142,6 +194,13 @@ class IndexFieldState extends State<IndexField> {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: searchBar.build(context),
+      body: buildEasyRefresh(),
+    );
+  }
+
+  Widget buildEasyRefresh() {
     return EasyRefresh.custom(
       controller: _controller,
       header: SpaceHeader(),

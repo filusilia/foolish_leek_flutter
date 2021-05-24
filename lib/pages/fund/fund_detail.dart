@@ -1,20 +1,58 @@
+import 'package:flustars/flustars.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:get/get.dart';
+import 'package:no_foolish/common/router/routes.dart';
 import 'package:no_foolish/entity/fund.dart';
 import 'package:no_foolish/pages/widget/list_item.dart';
+import 'package:no_foolish/util/dio_util.dart';
 
 class FundDetail extends StatelessWidget {
   final Fund _fund = Get.arguments;
+  String favorite = '';
+
+  _favoriteFund() async {
+    favorite = _fund.favorite!;
+    int code;
+    await DioUtil.getInstance()
+        .favoriteFund(_fund.fundCode!, _fund.favorite!)
+        .then((value) {
+      code = int.parse(value.code!);
+      if (code == 0) {
+        if (favorite == '1') {
+          Get.snackbar("Success", '取消收藏成功');
+          _fund.favorite = '0';
+        } else {
+          Get.snackbar("Success", '收藏成功');
+          _fund.favorite = '1';
+        }
+      } else {
+        if (code < 2000) {
+          Get.snackbar("Failed", value.message!);
+        }
+        if (code == 2005) {
+          Get.snackbar("Failed", '登录过期了,请重新登录');
+          Get.toNamed(Routes.Login);
+        }
+      }
+    });
+  }
 
   @override
   Widget build(context) {
     return Scaffold(
-        // 使用Obx(()=>每当改变计数时，就更新Text()。
-        appBar: AppBar(title: Text(_fund.fundName!)),
-
-        // 用一个简单的Get.to()即可代替Navigator.push那8行，无需上下文！
+        appBar: AppBar(title: Text(_fund.fundName!), actions: [
+          IconButton(
+              icon: _fund.favorite == '1'
+                  ? Icon(CupertinoIcons.star_fill,
+                      color: Colors.yellow, semanticLabel: "收藏")
+                  : Icon(CupertinoIcons.star,
+                      color: Colors.grey, semanticLabel: "收藏"),
+              onPressed: () {
+                _favoriteFund();
+              })
+        ]),
         body: Stack(
           children: <Widget>[
             Container(
@@ -123,7 +161,8 @@ class FundDetail extends StatelessWidget {
                                         style: TextStyle(
                                             fontSize: 16, color: Colors.white)),
                                   ],
-                                ), Row(
+                                ),
+                                Row(
                                   children: <Widget>[
                                     Column(
                                       crossAxisAlignment:
@@ -178,7 +217,8 @@ class FundDetail extends StatelessWidget {
                                         style: TextStyle(
                                             fontSize: 16, color: Colors.white)),
                                   ],
-                                ), Row(
+                                ),
+                                Row(
                                   children: <Widget>[
                                     Column(
                                       crossAxisAlignment:
@@ -205,7 +245,8 @@ class FundDetail extends StatelessWidget {
                                         style: TextStyle(
                                             fontSize: 16, color: Colors.white)),
                                   ],
-                                ), Row(
+                                ),
+                                Row(
                                   children: <Widget>[
                                     Column(
                                       crossAxisAlignment:
@@ -232,7 +273,8 @@ class FundDetail extends StatelessWidget {
                                         style: TextStyle(
                                             fontSize: 16, color: Colors.white)),
                                   ],
-                                ), Row(
+                                ),
+                                Row(
                                   children: <Widget>[
                                     Column(
                                       crossAxisAlignment:
