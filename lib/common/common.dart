@@ -1,5 +1,10 @@
+///基础常量
 class BaseConstant {
   static const String project = '聪明的小韭菜';
+
+  static const String NONE = '';
+  static const String SUCCESS = 'success';
+  static const String FAILED = 'failed';
 
   static const String packageBase = 'base_library';
 

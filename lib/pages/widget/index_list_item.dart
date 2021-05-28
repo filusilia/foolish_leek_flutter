@@ -31,13 +31,13 @@ class SampleListItem extends StatelessWidget {
     this._fund = fund;
   }
 
-  _getRealTime(String fundCode) async {
+  _getRealTime(String fundCode, String favorite) async {
     int code;
     await DioUtil.getInstance().getRealTime(fundCode).then((value) {
       code = int.parse(value.code!);
       if (code == 0) {
         var nowFund = JsonUtil.getObject(value.data, (v) => Fund.fromJson(v));
-
+        nowFund!.favorite = favorite;
         LogUtil.v(nowFund, tag: 'realTime');
         Get.toNamed(Routes.FundDetail, arguments: nowFund);
       } else {
@@ -174,7 +174,7 @@ class SampleListItem extends StatelessWidget {
               ),
             ),
             onTap: () {
-              _getRealTime(_fund.fundCode!);
+              _getRealTime(_fund.fundCode!, _fund.favorite!);
             },
           ))
         : Card(
@@ -215,10 +215,15 @@ class SampleListItem extends StatelessWidget {
                               flex: 1,
                               child: SizedBox(),
                             ),
-                            Icon(
-                              Icons.star,
-                              color: Colors.grey[200],
-                            )
+                            _fund.favorite == '1'
+                                ? Icon(
+                                    CupertinoIcons.star_fill,
+                                    color: Colors.yellow,
+                                  )
+                                : Icon(
+                                    CupertinoIcons.star,
+                                    color: Colors.grey,
+                                  )
                           ],
                         ),
                         SizedBox(
@@ -255,7 +260,7 @@ class SampleListItem extends StatelessWidget {
               ),
             ),
             onTap: () {
-              _getRealTime(_fund.fundCode!);
+              _getRealTime(_fund.fundCode!, _fund.favorite!);
             },
           ));
   }

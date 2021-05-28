@@ -14,6 +14,7 @@ const _themes = <MaterialColor>[
   Colors.red,
 ];
 
+///全局配置
 class Global {
   static Profile profile = Profile();
 
@@ -21,7 +22,13 @@ class Global {
   static List<MaterialColor> get themes => _themes;
 
   // 是否为release版
-  static bool get isRelease => bool.fromEnvironment("dart.vm.product");
+  static bool isRelease = false;
+
+  ///开发请求地址
+  static String devUrl = 'http://localhost:8080/foolish/';
+
+  ///release地址
+  static String prodUrl = 'http://xxx:8080/foolish/';
 
   //初始化全局信息
   static Future init() async {
@@ -39,14 +46,20 @@ class Global {
       final token = JsonUtil.getObject(tokenObj, (v) => MyToken.fromJson(v));
       if (null != token) {
         var before = DateTime.fromMicrosecondsSinceEpoch(token.now!);
-        if (DateTime.now().difference(before).inSeconds <
-            token.tokenTimeout!) {
+        if (DateTime.now().difference(before).inSeconds < token.tokenTimeout!) {
           DioUtil.getInstance().setToken(token);
           LogUtil.v('没问题奥 已经登录了，直接进入列表吧.', tag: BaseConstant.tagInit);
-          LogUtil.v('完事了.', tag: BaseConstant.tagConfig);
-          DioUtil.getInstance().refresh();
+          DioUtil.getInstance().refresh().then((value) {
+            int code;
+            code = int.parse(value.code!);
+            if (code == 0) {
+              var tokenInfo = MyToken.fromJson(value.data);
+              tokenInfo.now = DateTime.now().microsecondsSinceEpoch;
+              SpUtil.putString('token', token.toJson());
+            }
+          });
           BaseConstant.isLogin = true;
-        }else {
+        } else {
           LogUtil.v('超时了,token留着也没用了,直接删除.', tag: BaseConstant.tagInit);
           SpUtil.remove('token');
         }

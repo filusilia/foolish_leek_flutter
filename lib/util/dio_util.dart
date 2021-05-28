@@ -1,6 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:flustars/flustars.dart';
+import 'package:get/get.dart';
+import 'package:no_foolish/common/common.dart';
+import 'package:no_foolish/common/global.dart';
+import 'package:no_foolish/common/router/routes.dart';
 import 'package:no_foolish/entity/myInfo.dart';
 import 'package:no_foolish/entity/resultResponse.dart';
+import 'package:no_foolish/util/custom_tool.dart';
 
 /// 请求方法.
 class Method {
@@ -16,12 +22,11 @@ class Method {
 /// debug模式下可以打印请求日志. DioUtil.openDebug().
 /// dio详细使用请查看dio官网(https://github.com/flutterchina/dio).
 class DioUtil {
-  final baseUrl = 'http://localhost:8080/foolish/';
   static final DioUtil _singleton = DioUtil._init();
   static final _dio = Dio(); // with default Options
 
   DioUtil._init() {
-    _dio.options.baseUrl = baseUrl;
+    _dio.options.baseUrl = Global.isRelease?Global.prodUrl:Global.devUrl;
     _dio.options.connectTimeout = 5000; //5s
     _dio.options.receiveTimeout = 3000;
     var logDebug = LogInterceptor();
@@ -54,48 +59,60 @@ class DioUtil {
   Future<ResultResponse> doLogin(String? loginKey, String? password) async {
     var response = await _dio
         .post('user/login', data: {'loginKey': loginKey, 'password': password});
-    return ResultResponse.fromJson(response.data);
+    return checkReturn(response.data);
   }
 
   /// 更新登录
   Future<ResultResponse> refresh() async {
     var response = await _dio.get('user/updateLogin');
-    return ResultResponse.fromJson(response.data);
+    return checkReturn(response.data);
   }
 
   /// 判断是否登录
   Future<ResultResponse> isLogin() async {
     var response = await _dio.get('user/isLogin');
-    return ResultResponse.fromJson(response.data);
+    return checkReturn(response.data);
   }
 
   /// 分页获取基金
   Future<ResultResponse> getFunds(int page, {int? pageSize = 10}) async {
     var response = await _dio
         .post('fund/listFund', data: {'page': page, 'pageSize': pageSize});
-    return ResultResponse.fromJson(response.data);
+    return checkReturn(response.data);
   }
 
   ///实时获取基金
   Future<ResultResponse> getRealTime(String code) async {
     var response =
         await _dio.post('fund/realTimeFundByCode', data: {'fundCode': code});
-    return ResultResponse.fromJson(response.data);
+    return checkReturn(response.data);
   }
 
   ///查询基金
   Future<ResultResponse> searchFund(
       String? code, String? pinyin, String? name, int page,
       {int? pageSize = 20}) async {
-    var response = await _dio.post('fund/searchFund',
-        data: {'fundCode': code, 'pinyin': pinyin, 'fundName': name});
-    return ResultResponse.fromJson(response.data);
+    var response = await _dio.post('fund/searchFund', data: {
+      'fundCode': code,
+      'pinyin': pinyin,
+      'fundName': name,
+      'page': page,
+      'pageSize': pageSize
+    });
+    return checkReturn(response.data);
   }
 
   ///添加我的基金
   Future<ResultResponse> addFund(String code) async {
     var response = await _dio.post('fund/addMyFund', data: {'fundCode': code});
-    return ResultResponse.fromJson(response.data);
+    return checkReturn(response.data);
+  }
+
+  ///添加我的基金
+  Future<ResultResponse> unlockFund(String code) async {
+    var response =
+        await _dio.post('fund/unlockMyFund', data: {'fundCode': code});
+    return checkReturn(response.data);
   }
 
   ///收藏/取消收藏基金
@@ -103,6 +120,25 @@ class DioUtil {
   Future<ResultResponse> favoriteFund(String code, String favorite) async {
     var response = await _dio.post('fund/favoriteFund',
         data: {'fundCode': code, 'favorite': favorite});
-    return ResultResponse.fromJson(response.data);
+    return checkReturn(response.data);
+  }
+
+  ResultResponse checkReturn(dynamic response) {
+    ResultResponse result = ResultResponse.fromJson(response);
+    if (CustomTool.isNumeric(result.code)) {
+      int code = int.parse(result.code!);
+      if (code != 0) {
+        if (code < 2000) {
+          Get.snackbar(BaseConstant.FAILED, result.message!);
+        }
+        if (code == 2005) {
+          Get.snackbar("Failed", '登录过期了,请重新登录');
+          Get.toNamed(Routes.Login);
+        }
+      }
+      return result;
+    }
+    Get.snackbar(BaseConstant.FAILED, '网络请求数据异常');
+    throw new Exception('网络请求返回数据发生错误.');
   }
 }

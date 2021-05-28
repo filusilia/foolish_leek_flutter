@@ -3,29 +3,32 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:get/get.dart';
+import 'package:no_foolish/common/common.dart';
 import 'package:no_foolish/common/router/routes.dart';
+import 'package:no_foolish/controller/favorite_controller.dart';
 import 'package:no_foolish/entity/fund.dart';
 import 'package:no_foolish/pages/widget/list_item.dart';
 import 'package:no_foolish/util/dio_util.dart';
 
 class FundDetail extends StatelessWidget {
+  final FavoriteController _favoriteController = Get.put(FavoriteController());
+
   final Fund _fund = Get.arguments;
-  String favorite = '';
 
   _favoriteFund() async {
-    favorite = _fund.favorite!;
+    bool favorite = _favoriteController.like();
     int code;
     await DioUtil.getInstance()
-        .favoriteFund(_fund.fundCode!, _fund.favorite!)
+        .favoriteFund(_fund.fundCode!, favorite?'0':'1')
         .then((value) {
       code = int.parse(value.code!);
       if (code == 0) {
-        if (favorite == '1') {
-          Get.snackbar("Success", '取消收藏成功');
-          _fund.favorite = '0';
+        if (_favoriteController.like()) {
+          Get.snackbar(BaseConstant.NONE, '取消收藏成功');
+          _favoriteController.favorite.value = false;
         } else {
-          Get.snackbar("Success", '收藏成功');
-          _fund.favorite = '1';
+          Get.snackbar(BaseConstant.NONE, '收藏成功');
+          _favoriteController.favorite.value = true;
         }
       } else {
         if (code < 2000) {
@@ -41,14 +44,15 @@ class FundDetail extends StatelessWidget {
 
   @override
   Widget build(context) {
+    _favoriteController.set(_fund.favorite == '1');
     return Scaffold(
         appBar: AppBar(title: Text(_fund.fundName!), actions: [
           IconButton(
-              icon: _fund.favorite == '1'
+              icon: Obx(() => _favoriteController.like()
                   ? Icon(CupertinoIcons.star_fill,
                       color: Colors.yellow, semanticLabel: "收藏")
                   : Icon(CupertinoIcons.star,
-                      color: Colors.grey, semanticLabel: "收藏"),
+                      color: Colors.grey, semanticLabel: "收藏")),
               onPressed: () {
                 _favoriteFund();
               })

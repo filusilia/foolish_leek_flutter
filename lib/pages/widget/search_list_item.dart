@@ -2,15 +2,34 @@ import 'package:flustars/flustars.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:no_foolish/common/common.dart';
 import 'package:no_foolish/common/router/routes.dart';
 import 'package:no_foolish/controller/fund_controller.dart';
+import 'package:no_foolish/controller/search_controller.dart';
 import 'package:no_foolish/entity/fund.dart';
 import 'package:no_foolish/util/dio_util.dart';
 
-/// 搜索结果列表
-class SearchListItem extends StatelessWidget {
-  final FundController c = Get.put(FundController());
+class SearchListItem extends StatefulWidget {
+  late Fund _fund;
+  late int _index;
 
+  SearchListItem(
+    int index,
+    Fund fund, {
+    Key? key,
+  }) : super(key: key) {
+    this._index = index;
+    this._fund = fund;
+  }
+
+  @override
+  State createState() {
+    return SearchListState(_index, _fund);
+  }
+}
+
+/// 搜索结果列表
+class SearchListState extends State<SearchListItem> {
   /// 方向
   final Axis direction;
 
@@ -20,36 +39,18 @@ class SearchListItem extends StatelessWidget {
   late int _index;
   late Fund _fund;
 
-  SearchListItem(
+  bool bind = false;
+
+  SearchListState(
     int index,
     Fund fund, {
     Key? key,
     this.direction = Axis.vertical,
     this.width = double.infinity,
-  }) : super(key: key) {
+  }) {
     this._index = index;
     this._fund = fund;
-  }
-
-  _getRealTime(String fundCode) async {
-    int code;
-    await DioUtil.getInstance().getRealTime(fundCode).then((value) {
-      code = int.parse(value.code!);
-      if (code == 0) {
-        var nowFund = JsonUtil.getObject(value.data, (v) => Fund.fromJson(v));
-
-        LogUtil.v(nowFund, tag: 'realTime');
-        Get.toNamed(Routes.FundDetail, arguments: nowFund);
-      } else {
-        if (code < 2000) {
-          Get.snackbar("Failed", value.message!);
-        }
-        if (code == 2005) {
-          Get.snackbar("Failed", '登录过期了,请重新登录');
-          Get.toNamed(Routes.Login);
-        }
-      }
-    });
+    bind = fund.sort == null;
   }
 
   bool _upOrDown() {
@@ -58,6 +59,40 @@ class SearchListItem extends StatelessWidget {
       return true;
     }
     return false;
+  }
+
+  _addMyFund() async {
+    int code;
+    await DioUtil.getInstance().addFund(_fund.fundCode!).then((value) {
+      code = int.parse(value.code!);
+      if (code == 0) {
+        Get.snackbar(BaseConstant.NONE, value.message!);
+        setState(() {
+          bind = true;
+        });
+      }
+    });
+  }
+
+  _unlockMyFund() async {
+    int code;
+    await DioUtil.getInstance().unlockFund(_fund.fundCode!).then((value) {
+      code = int.parse(value.code!);
+      if (code == 0) {
+        Get.snackbar(BaseConstant.NONE, value.message!);
+        setState(() {
+          bind = false;
+        });
+      } else {
+        if (code < 2000) {
+          Get.snackbar(BaseConstant.NONE, value.message!);
+        }
+        if (code == 2005) {
+          Get.snackbar(BaseConstant.NONE, '登录过期了,请重新登录');
+          Get.toNamed(Routes.Login);
+        }
+      }
+    });
   }
 
   @override
@@ -127,15 +162,16 @@ class SearchListItem extends StatelessWidget {
                                   flex: 1,
                                   child: SizedBox(),
                                 ),
-                                _fund.favorite == '1'
+                                //根据目前的设计,关联的基金一定会有排序字段值,当sort为空可以认为没有关联,就是没有绑定该基金
+                                bind
                                     ? Icon(
-                                        CupertinoIcons.star_fill,
-                                        color: Colors.yellow,
+                                        CupertinoIcons.add,
+                                        color: Colors.blue,
                                       )
                                     : Icon(
-                                        CupertinoIcons.star,
+                                        CupertinoIcons.clear,
                                         color: Colors.grey,
-                                      )
+                                      ),
                               ],
                             ),
                             SizedBox(
@@ -174,7 +210,7 @@ class SearchListItem extends StatelessWidget {
               ),
             ),
             onTap: () {
-              _getRealTime(_fund.fundCode!);
+              _fund.sort == null ? _addMyFund() : _unlockMyFund();
             },
           ))
         : Card(
@@ -215,10 +251,15 @@ class SearchListItem extends StatelessWidget {
                               flex: 1,
                               child: SizedBox(),
                             ),
-                            Icon(
-                              Icons.star,
-                              color: Colors.grey[200],
-                            )
+                            bind
+                                ? Icon(
+                                    CupertinoIcons.add,
+                                    color: Colors.blue,
+                                  )
+                                : Icon(
+                                    CupertinoIcons.clear,
+                                    color: Colors.grey,
+                                  ),
                           ],
                         ),
                         SizedBox(
@@ -255,7 +296,7 @@ class SearchListItem extends StatelessWidget {
               ),
             ),
             onTap: () {
-              _getRealTime(_fund.fundCode!);
+              _fund.sort == null ? _addMyFund() : _unlockMyFund();
             },
           ));
   }

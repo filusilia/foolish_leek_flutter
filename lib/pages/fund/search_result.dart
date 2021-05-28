@@ -5,7 +5,8 @@ import 'package:get/get.dart';
 import 'package:no_foolish/common/router/routes.dart';
 import 'package:no_foolish/entity/fund.dart';
 import 'package:no_foolish/pages/header/space_header.dart';
-import 'package:no_foolish/pages/widget/sample_list_item.dart';
+import 'package:no_foolish/pages/widget/index_list_item.dart';
+import 'package:no_foolish/pages/widget/search_list_item.dart';
 import 'package:no_foolish/util/dio_util.dart';
 
 class SearchResult extends StatefulWidget {
@@ -13,9 +14,9 @@ class SearchResult extends StatefulWidget {
 
   @override
   State createState() {
-    final Map<String, dynamic> data = Get.arguments;
+    final data = Get.arguments;
 
-    return SearchResultState(data['data'] ?? null);
+    return SearchResultState(data['query'], data['list'] ?? null);
   }
 }
 
@@ -29,8 +30,10 @@ class SearchResultState extends State<SearchResult> {
   //每页数量
   int _pageSize = 10;
   List<Fund>? _list;
+  late Fund fund;
 
-  SearchResultState(List<Fund>? list) {
+  SearchResultState(Fund fund, List<Fund>? list) {
+    this.fund = fund;
     _list = list;
     _count = list?.length ?? 0;
   }
@@ -45,7 +48,7 @@ class SearchResultState extends State<SearchResult> {
   _loadSearchFunds(int page) async {
     int code;
     await DioUtil.getInstance()
-        .getFunds(page, pageSize: _pageSize)
+        .searchFund(fund.fundCode, fund.fundFullPinyin, fund.fundName, 1)
         .then((value) {
       code = int.parse(value.code!);
       if (code == 0) {
@@ -86,52 +89,20 @@ class SearchResultState extends State<SearchResult> {
     return EasyRefresh.custom(
       header: SpaceHeader(),
       footer: BallPulseFooter(),
-      onRefresh: () async {
-        LogUtil.v('不需要初始化');
-      },
       onLoad: () async {
-        LogUtil.v('ok onLoad');
-
         await _loadSearchFunds(_page);
       },
       slivers: <Widget>[
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
-              return SampleListItem(index, _list![index]);
+              LogUtil.v('构建开始----------${_list![index]}');
+              return SearchListItem(index, _list![index]);
             },
             childCount: _count,
           ),
         ),
       ],
-      emptyWidget: _count == 0
-          ? Container(
-              height: double.infinity,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Expanded(
-                    child: SizedBox(),
-                    flex: 2,
-                  ),
-                  SizedBox(
-                    width: 100.0,
-                    height: 100.0,
-                    child: Image.asset('assets/images/empty.png'),
-                  ),
-                  Text(
-                    "查询结果空 ",
-                    style: TextStyle(fontSize: 16.0, color: Colors.grey[400]),
-                  ),
-                  Expanded(
-                    child: SizedBox(),
-                    flex: 3,
-                  ),
-                ],
-              ),
-            )
-          : null,
     );
   }
 }
