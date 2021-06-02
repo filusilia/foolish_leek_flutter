@@ -1,13 +1,12 @@
-import 'package:flustars/flustars.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:no_foolish/common/common.dart';
 import 'package:no_foolish/common/router/routes.dart';
-import 'package:no_foolish/controller/fund_controller.dart';
-import 'package:no_foolish/controller/search_controller.dart';
 import 'package:no_foolish/entity/fund.dart';
 import 'package:no_foolish/util/dio_util.dart';
+
+import 'fund_component.dart';
 
 class SearchListItem extends StatefulWidget {
   late Fund _fund;
@@ -104,40 +103,12 @@ class SearchListState extends State<SearchListItem> {
               child: Row(
                 children: <Widget>[
                   Container(
-                    height: 40.0,
-                    child: AspectRatio(
+                      height: 40.0,
+                      child: AspectRatio(
                         aspectRatio: 2.0,
                         //左侧显示今日涨还是跌
-                        child: _upOrDown()
-                            ? Row(
-                                children: <Widget>[
-                                  Icon(
-                                    CupertinoIcons.chevron_up,
-                                    color: Colors.red[600],
-                                  ),
-                                  Container(
-                                    color: Colors.red[400],
-                                    child: Text(_fund.expectGrowth ?? '0',
-                                        style: TextStyle(
-                                            fontSize: 14, color: Colors.white)),
-                                  ),
-                                ],
-                              )
-                            : Row(
-                                children: <Widget>[
-                                  Icon(
-                                    CupertinoIcons.chevron_down,
-                                    color: Colors.green[600],
-                                  ),
-                                  Container(
-                                    color: Colors.green[400],
-                                    child: Text(_fund.expectGrowth ?? '0',
-                                        style: TextStyle(
-                                            fontSize: 14, color: Colors.white)),
-                                  ),
-                                ],
-                              )),
-                  ),
+                        child: FundComponent.leftCard(_fund.expectGrowth),
+                      )),
                   Expanded(
                     flex: 1,
                     child: Container(

@@ -15,8 +15,6 @@ class Index extends StatelessWidget {
 
   IndexController _indexController = Get.put(IndexController());
 
-  int count = Get.find<IndexController>().count.value;
-
   late SearchBar searchBar;
 
   Index() {
@@ -51,14 +49,16 @@ class Index extends StatelessWidget {
   }
 
   void onSubmitted(String value) {
-    _indexController.getFund(value);
+    _indexController.searchFund(value);
   }
 
   @override
   Widget build(BuildContext context) {
     return GetX<IndexController>(
       init: _indexController,
-      initState: (_) {},
+      initState: (_) {
+        _indexController.initFunds();
+      },
       builder: (_) {
         return Scaffold(
           appBar: _indexController.search.value
@@ -77,8 +77,9 @@ class Index extends StatelessWidget {
         footer: BallPulseFooter(),
         onRefresh: () async {
           _indexController.page = 1;
+          _indexController.count.value = 0;
           await _indexController.initFunds();
-          LogUtil.v(count);
+          LogUtil.v(_indexController.count.value);
         },
         onLoad: () async {
           _indexController.page++;
@@ -87,40 +88,40 @@ class Index extends StatelessWidget {
         slivers: <Widget>[
           SliverList(
             delegate: SliverChildBuilderDelegate(
-                  (context, index) {
+              (context, index) {
                 return SampleListItem(index, _indexController.fundList![index]);
               },
               childCount: _indexController.count.value,
             ),
           ),
         ],
-        emptyWidget: count == 0
+        emptyWidget: _indexController.count.value == 0
             ? Container(
-          height: double.infinity,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Expanded(
-                child: SizedBox(),
-                flex: 2,
-              ),
-              SizedBox(
-                width: 100.0,
-                height: 100.0,
-                child: Image.asset('assets/images/empty.png'),
-              ),
-              Text(
-                "没有基金",
-                style: TextStyle(fontSize: 16.0, color: Colors.grey[400]),
-              ),
-              Expanded(
-                child: SizedBox(),
-                flex: 3,
-              ),
-            ],
-          ),
-        )
+                height: double.infinity,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Expanded(
+                      child: SizedBox(),
+                      flex: 2,
+                    ),
+                    SizedBox(
+                      width: 100.0,
+                      height: 100.0,
+                      child: Image.asset('assets/images/empty.png'),
+                    ),
+                    Text(
+                      "没有基金",
+                      style: TextStyle(fontSize: 16.0, color: Colors.grey[400]),
+                    ),
+                    Expanded(
+                      child: SizedBox(),
+                      flex: 3,
+                    ),
+                  ],
+                ),
+              )
             : null);
   }
 }

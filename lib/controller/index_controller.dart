@@ -7,7 +7,6 @@ import 'package:no_foolish/util/custom_tool.dart';
 import 'package:no_foolish/util/dio_util.dart';
 
 class IndexController extends GetxController {
-
   //给StatelessWidget的首页APPbar添加一个search状态用于build更改搜索框;
   final search = false.obs;
 
@@ -29,7 +28,7 @@ class IndexController extends GetxController {
   pushList(List<Fund>? list) {}
 
   ///搜索基金
-  getFund(String value) {
+  searchFund(String value) {
     List<String> search = value.split(' ');
     Fund? fund = Fund.fromParams();
     for (var temp in search) {

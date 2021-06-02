@@ -7,6 +7,8 @@ import 'package:no_foolish/controller/fund_controller.dart';
 import 'package:no_foolish/entity/fund.dart';
 import 'package:no_foolish/util/dio_util.dart';
 
+import 'fund_component.dart';
+
 /// 简单列表项
 class SampleListItem extends StatelessWidget {
   final FundController c = Get.put(FundController());
@@ -37,7 +39,6 @@ class SampleListItem extends StatelessWidget {
       code = int.parse(value.code!);
       if (code == 0) {
         var nowFund = JsonUtil.getObject(value.data, (v) => Fund.fromJson(v));
-        nowFund!.favorite = favorite;
         LogUtil.v(nowFund, tag: 'realTime');
         Get.toNamed(Routes.FundDetail, arguments: nowFund);
       } else {
@@ -52,14 +53,6 @@ class SampleListItem extends StatelessWidget {
     });
   }
 
-  bool _upOrDown() {
-    var dayGrowth = _fund.expectGrowth ?? '0';
-    if (double.parse(dayGrowth) > 0) {
-      return true;
-    }
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
     return direction == Axis.vertical
@@ -69,40 +62,12 @@ class SampleListItem extends StatelessWidget {
               child: Row(
                 children: <Widget>[
                   Container(
-                    height: 40.0,
-                    child: AspectRatio(
+                      height: 40.0,
+                      child: AspectRatio(
                         aspectRatio: 2.0,
                         //左侧显示今日涨还是跌
-                        child: _upOrDown()
-                            ? Row(
-                                children: <Widget>[
-                                  Icon(
-                                    CupertinoIcons.chevron_up,
-                                    color: Colors.red[600],
-                                  ),
-                                  Container(
-                                    color: Colors.red[400],
-                                    child: Text(_fund.expectGrowth ?? '0',
-                                        style: TextStyle(
-                                            fontSize: 14, color: Colors.white)),
-                                  ),
-                                ],
-                              )
-                            : Row(
-                                children: <Widget>[
-                                  Icon(
-                                    CupertinoIcons.chevron_down,
-                                    color: Colors.green[600],
-                                  ),
-                                  Container(
-                                    color: Colors.green[400],
-                                    child: Text(_fund.expectGrowth ?? '0',
-                                        style: TextStyle(
-                                            fontSize: 14, color: Colors.white)),
-                                  ),
-                                ],
-                              )),
-                  ),
+                        child: FundComponent.leftCard(_fund.expectGrowth),
+                      )),
                   Expanded(
                     flex: 1,
                     child: Container(
