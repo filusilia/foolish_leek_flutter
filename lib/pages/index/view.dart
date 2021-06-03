@@ -5,20 +5,23 @@ import 'package:flutter_easyrefresh/easy_refresh.dart';
 import 'package:flutter_search_bar/flutter_search_bar.dart';
 import 'package:get/get.dart';
 import 'package:no_foolish/common/common.dart';
-import 'package:no_foolish/controller/index_controller.dart';
+import 'package:no_foolish/pages/header/space_header.dart';
 import 'package:no_foolish/pages/widget/index_list_item.dart';
 
-import 'header/space_header.dart';
+import 'logic.dart';
 
-@deprecated
-class Index extends StatelessWidget {
-  EasyRefreshController _controller = EasyRefreshController();
+class IndexPage extends StatefulWidget {
+  @override
+  _IndexPageState createState() => _IndexPageState();
+}
 
-  IndexController _indexController = Get.put(IndexController());
+class _IndexPageState extends State<IndexPage> {
+  final IndexLogic logic = Get.put(IndexLogic());
+  final EasyRefreshController _controller = EasyRefreshController();
 
   late SearchBar searchBar;
 
-  Index() {
+  _IndexPageState() {
     searchBar = new SearchBar(
         inBar: false,
         buildDefaultAppBar: buildAppBar,
@@ -33,12 +36,6 @@ class Index extends StatelessWidget {
         });
   }
 
-  //回调修改正在搜索标识
-  void setState(VoidCallback fn) {
-    fn() as dynamic;
-    _indexController.search.value = searchBar.isSearching.value;
-  }
-
   AppBar buildAppBar(BuildContext context) {
     return AppBar(title: Text(BaseConstant.project), actions: [
       IconButton(
@@ -50,21 +47,20 @@ class Index extends StatelessWidget {
   }
 
   void onSubmitted(String value) {
-    _indexController.searchFund(value);
+    LogUtil.v('submit $value');
+    logic.searchFund(value);
   }
 
   @override
   Widget build(BuildContext context) {
-    return GetX<IndexController>(
-      init: _indexController,
+    return GetX<IndexLogic>(
+      init: logic,
       initState: (_) {
-        _indexController.initFunds();
+        logic.initFunds();
       },
       builder: (_) {
         return Scaffold(
-          appBar: _indexController.search.value
-              ? searchBar.buildSearchBar(context)
-              : searchBar.buildAppBar(context),
+          appBar:searchBar.build(context),
           body: buildEasyRefresh(),
         );
       },
@@ -77,26 +73,24 @@ class Index extends StatelessWidget {
         header: SpaceHeader(),
         footer: BallPulseFooter(),
         onRefresh: () async {
-          _indexController.page = 1;
-          _indexController.count.value = 0;
-          await _indexController.initFunds();
-          LogUtil.v(_indexController.count.value);
+          logic.page = 1;
+          await logic.initFunds();
         },
         onLoad: () async {
-          _indexController.page++;
-          await _indexController.loadFunds(_indexController.page);
+          logic.page++;
+          await logic.loadFunds(logic.page);
         },
         slivers: <Widget>[
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
-                return SampleListItem(index, _indexController.fundList![index]);
+                return SampleListItem(index, logic.list[index]);
               },
-              childCount: _indexController.count.value,
+              childCount: logic.list.length,
             ),
           ),
         ],
-        emptyWidget: _indexController.count.value == 0
+        emptyWidget: logic.list.length == 0
             ? Container(
                 height: double.infinity,
                 child: Column(
@@ -124,5 +118,11 @@ class Index extends StatelessWidget {
                 ),
               )
             : null);
+  }
+
+  @override
+  void dispose() {
+    Get.delete<IndexLogic>();
+    super.dispose();
   }
 }

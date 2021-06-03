@@ -1,4 +1,3 @@
-import 'package:flustars/flustars.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
@@ -189,7 +188,7 @@ class FundDetail extends StatelessWidget {
                                             BoxDecoration(color: Colors.white),
                                       ),
                                     ),
-                                    Text(_fund.manager!,
+                                    Text(_fund.manager??'',
                                         style: TextStyle(
                                             fontSize: 16, color: Colors.white)),
                                   ],

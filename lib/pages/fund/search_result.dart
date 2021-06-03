@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:no_foolish/common/router/routes.dart';
 import 'package:no_foolish/entity/fund.dart';
 import 'package:no_foolish/pages/header/space_header.dart';
-import 'package:no_foolish/pages/widget/index_list_item.dart';
 import 'package:no_foolish/pages/widget/search_list_item.dart';
 import 'package:no_foolish/util/dio_util.dart';
 
@@ -15,7 +14,6 @@ class SearchResult extends StatefulWidget {
   @override
   State createState() {
     final data = Get.arguments;
-
     return SearchResultState(data['query'], data['list'] ?? null);
   }
 }
@@ -96,7 +94,7 @@ class SearchResultState extends State<SearchResult> {
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
-              LogUtil.v('构建开始----------${_list![index]}');
+              // LogUtil.v('构建开始----------${_list![index]}');
               return SearchListItem(index, _list![index]);
             },
             childCount: _count,

@@ -33,7 +33,7 @@ class SampleListItem extends StatelessWidget {
     this._fund = fund;
   }
 
-  _getRealTime(String fundCode, String favorite) async {
+  _getRealTime(String fundCode) async {
     int code;
     await DioUtil.getInstance().getRealTime(fundCode).then((value) {
       code = int.parse(value.code!);
@@ -139,7 +139,7 @@ class SampleListItem extends StatelessWidget {
               ),
             ),
             onTap: () {
-              _getRealTime(_fund.fundCode!, _fund.favorite!);
+              _getRealTime(_fund.fundCode!);
             },
           ))
         : Card(
@@ -225,7 +225,7 @@ class SampleListItem extends StatelessWidget {
               ),
             ),
             onTap: () {
-              _getRealTime(_fund.fundCode!, _fund.favorite!);
+              _getRealTime(_fund.fundCode!);
             },
           ));
   }
