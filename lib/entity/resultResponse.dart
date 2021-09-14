@@ -4,7 +4,7 @@ class ResultResponse {
   String? apiversion;
   String? code;
   String? message;
-  dynamic? data;
+  dynamic data;
 
   ResultResponse.fromParams(
       {this.apiversion, this.code, this.message, this.data});

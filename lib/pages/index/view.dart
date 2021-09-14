@@ -42,7 +42,12 @@ class _IndexPageState extends State<IndexPage> {
           icon: Icon(CupertinoIcons.search, semanticLabel: "搜索"),
           onPressed: () {
             searchBar.beginSearch(context);
-          })
+          }),
+      IconButton(
+          icon: Icon(CupertinoIcons.settings, semanticLabel: "设置"),
+          onPressed: () {
+            LogUtil.v('准备进入设置');
+          }),
     ]);
   }
 
