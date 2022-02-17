@@ -26,7 +26,7 @@ class DioUtil {
   static final _dio = Dio(); // with default Options
 
   DioUtil._init() {
-    _dio.options.baseUrl = Global.isRelease?Global.prodUrl:Global.devUrl;
+    _dio.options.baseUrl = Global.isRelease ? Global.prodUrl : Global.devUrl;
     _dio.options.connectTimeout = 5000; //5s
     _dio.options.receiveTimeout = 3000;
     var logDebug = LogInterceptor();
@@ -76,15 +76,15 @@ class DioUtil {
 
   /// 分页获取基金
   Future<ResultResponse> getFunds(int page, {int? pageSize = 10}) async {
-    var response = await _dio
-        .post('fund/listFund', data: {'page': page, 'pageSize': pageSize});
+    var response = await _dio.get('fund/listFund',
+        queryParameters: {'page': page, 'pageSize': pageSize});
     return checkReturn(response.data);
   }
 
   ///实时获取基金
   Future<ResultResponse> getRealTime(String code) async {
-    var response =
-        await _dio.post('fund/realTimeFundByCode', data: {'fundCode': code});
+    var response = await _dio
+        .get('fund/realTimeFundByCode', queryParameters: {'fundCode': code});
     return checkReturn(response.data);
   }
 
@@ -92,7 +92,7 @@ class DioUtil {
   Future<ResultResponse> searchFund(
       String? code, String? pinyin, String? name, int page,
       {int? pageSize = 20}) async {
-    var response = await _dio.post('fund/searchFund', data: {
+    var response = await _dio.get('fund/searchFund', queryParameters: {
       'fundCode': code,
       'pinyin': pinyin,
       'fundName': name,
@@ -108,7 +108,7 @@ class DioUtil {
     return checkReturn(response.data);
   }
 
-  ///添加我的基金
+  ///解绑基金
   Future<ResultResponse> unlockFund(String code) async {
     var response =
         await _dio.post('fund/unlockMyFund', data: {'fundCode': code});
